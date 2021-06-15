@@ -1,0 +1,57 @@
+version: "3.8"
+
+services:
+  # Setting up mongodb container.
+  # Passing admin username and password from .env file
+  mongo:
+    image: mongo
+    container_name: mongo
+    restart: always
+    ports:
+      - 27017:27017
+    volumes:
+      # Entire database
+      - ./db:/data/db
+      # Database first config scripts
+      - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DATABASE_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${DATABASE_USER_PASSWORD}
+      MONGO_INITDB_DATABASE: ${DATABASE_NAME}
+
+  # Setting up mongo-express container.
+  # It is web interfase for mongodb
+  mongo-express:
+    image: mongo-express
+    container_name: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${DATABASE_USER}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${DATABASE_USER_PASSWORD}
+    depends_on:
+      - "mongo"
+
+  # Setting up frontend сontainer
+  # Via enviroment variable enabling live reload
+  client:
+    build: ./client
+    container_name: react-client
+    ports:
+      - 3000:3000
+    environment:
+      CHOKIDAR_USEPOLLING: ${CHOKIDAR_USEPOLLING}
+    volumes:
+      - ./client:/app
+
+    # Setting up backend container
+  server:
+    build: ./server
+    container_name: golang-backend
+    ports:
+      - 8000:8000
+    volumes:
+      - ./server:/go/src/app
+    depends_on:
+      - "mongo"
