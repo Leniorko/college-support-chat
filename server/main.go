@@ -1,7 +1,14 @@
 package main
 
-import "fmt"
+import (
+	"college-support-chat-backend/middleware/db"
+	"log"
+
+	"github.com/joho/godotenv"
+)
 
 func main() {
-	fmt.Println("SAVE ")
+	godotenv.Load()
+	appDatabase := db.Init()
+	log.Default().Println(appDatabase)
 }
